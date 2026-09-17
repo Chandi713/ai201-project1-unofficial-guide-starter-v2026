@@ -27,12 +27,13 @@
      this repo.
 
      Milestone 5. -->
+I took "advice_threads" corpora. It is about a practical undergraduate advice from students perspective answer common campus life, academic planning, experiences questions. In other words, it answers the questions about daily logistics and routines, academic planning, social and residential life, etcetera.
 
 ## Chunking Strategy
 
-**Chunk size:**
-**Overlap:**
-
+**Chunk size: 800**
+**Overlap: 120**
+I used the starter chunker, which splits each document into fixed-size character windows with a small overlap. This corpus is made of short, self-contained advice threads, so fixed-size chunks were a reasonable baseline and kept each answer coherent without forcing a more complex segmentation strategy. I kept this configuration for the initial evaluation because the retrieved chunks consistently contained the answer.
 <!-- What about YOUR documents made you pick these numbers? Short posts and
      long sectioned guides don't want the same chunking, and "800 seemed
      reasonable" earns nothing. Point at something you noticed when you read
@@ -54,29 +55,84 @@
 
      Milestone 3. -->
 
-**Chunk 1** — source: `` — produced by: ``
+**Chunk 1** — source: `thread_bike_commute.txt` — produced by: `chunker.py::fallback_split`
 
 ```
-```
+THREAD: Is a bike worth it for a 20 minute walk commute?
 
-**Chunk 2** — source: `` — produced by: ``
+--- reply 1 (14 votes) ---
+Yeah. Cuts an 18 minute walk to about 6. The thing nobody mentions is storage — covered bike parking exists at three buildings and is full by 9am at all three.
 
-```
-```
+--- reply 2 (9 votes) ---
+Counterpoint, I sold mine. Between November and March the paths are either icy or salted and salt destroys a drivetrain in one season.
 
-**Chunk 3** — source: `` — produced by: ``
+--- reply 3 (22 votes) ---
+Both true. I keep a cheap bike for September to November and walk the rest of the year. Total costwas about $120 for the bike and I don't care what happens to it.
 
-```
-```
-
-**Chunk 4** — source: `` — produced by: ``
-
-```
-```
-
-**Chunk 5** — source: `` — produced by: ``
+--- reply 4 (5 votes) ---
+If you do get one, the campus does free registration and it's the only reason I got mine back after it was taken.
 
 ```
+
+**Chunk 2** — source: `thread_first_gen.txt#0` — produced by: `chunker.py::fallback_split`
+
+```
+THREAD: Anything specific for first-generation students?
+
+--- reply 1 (33 votes) ---
+The advising office has a specific programme and it is genuinely good, but it is opt-in and badly publicised. Ask for it by name.
+
+--- reply 2 (41 votes) ---
+The thing I'd say: the unwritten rules are the hard part, not the coursework. Ask about the unwritten rules explicitly. People are happy to explain them and nobody volunteers them.
+
+--- reply 3 (16 votes) ---
+Emergency fund for textbooks and travel exists and is not means-tested beyond a short form.
+```
+
+**Chunk 3** — source: `thread_laptop_specs.txt#0 ` — produced by: `chunker.py::fallback_split`
+
+```
+THREAD: How much laptop do I actually need for CS courses?
+
+--- reply 1 (31 votes) ---
+Less than the recommended spec page says. 16GB of RAM is the one number worth paying for; everything else you'll never notice.
+
+--- reply 2 (18 votes) ---
+Adding: the lab machines exist and are better than anything you'll buy. For the heavy assignments people just use those.
+
+--- reply 3 (12 votes) ---
+I did two years on an 8GB machine and it was fine until the last project, at which point it very much wasn't. 16 is the answer.
+```
+
+**Chunk 4** — source: `thread_office_hours_etiquette.txt#0` — produced by: `chunker.py::fallback_split`
+
+```
+THREAD: Is it weird to go to office hours with no specific question?
+
+--- reply 1 (44 votes) ---
+No, and this is the single most common thing first years get wrong. 'I'm following the lectures but I don't feel like I understand the shape of it' is a completely normal thing to say.
+
+--- reply 2 (29 votes) ---
+They're usually empty. You are doing the instructor a favour by turning up.
+
+--- reply 3 (18 votes) ---
+If it helps, treat it as a standing appointment. Go every week for a month and it stops feeling like a thing.
+
+```
+
+**Chunk 5** — source: `thread_roommate_conflict.txt#0` — produced by: `chunker.py::fallback_split`
+
+```
+THREAD: Roommate situation isn't working. What now?
+
+--- reply 1 (28 votes) ---
+Talk to your RA early, and frame it as 'we need help sorting this out' rather than 'move me'. Roomchanges are possible but the process starts with mediation and skipping that step slows it down.
+
+--- reply 2 (14 votes) ---
+Room changes happen at the semester boundary almost always, and mid-semester only in fairly serious cases.
+
+--- reply 3 (33 votes) ---
+Write down specifics before the meeting. 'It's not working' is hard to act on; 'guests four nightsa week past 2am' is not.
 ```
 
 ## Sample Answer
@@ -85,14 +141,19 @@
      visible. Milestone 4. -->
 
 **Question:**
+What should I do if my roommate situation is not working? — run 1
 
 **Answer:**
 
 ```
+Best distance: 0.3535 (passed the gate)
+Sources retrieved: thread_first_year_regret.txt, thread_group_project.txt, thread_laundry_timing.txt, thread_office_hours_etiquette.txt, thread_roommate_conflict.txt
+
+Based on the provided documents, you should talk to your RA early and frame the conversation as needing help to sort things out rather than asking to move immediately (*thread_roommate_conflict.txt*). Additionally, you should write down specific details before your meeting rather than just saying the situation is not working (*thread_roommate_conflict.txt*).
 ```
 
-**My relevance cutoff:**
-
+**My relevance cutoff: 0.6**
+This was a good cutoff because the in-corpus questions stayed below it and the out-of-scope questions stayed above it, leaving a clear gap
 <!-- The number you set in config.py, and how you got there.
 
      You ran five questions your corpus covers and the five in OUT_OF_SCOPE
@@ -103,8 +164,17 @@
      Milestone 4. -->
 
 | Question | In corpus? | Best distance |
-|---|---|---|
-|  |  |  |
+|---|---|---:|
+| When is laundry actually free in the dorms? | Yes | 0.3276 |
+| Is the printing quota enough for most students? | Yes | 0.3146 |
+| When should I use the pass/fail option for a class? | Yes | 0.4642 |
+| What should I do if my roommate situation is not working? | Yes | 0.3535 |
+| Is it worth going to office hours if I do not have a specific question? | Yes | 0.5029 |
+| What is the capital of Mongolia? | No | 0.8900 |
+| How do I change the oil in a diesel engine? | No | 0.9300 |
+| Who won the 1994 World Cup? | No | 0.7870 |
+| What is the recommended dosage of ibuprofen for a headache? | No | 0.8280 |
+| How do I write a for loop in Rust? | No | 0.8710 |
 
 ## How I Used AI
 
@@ -117,9 +187,9 @@
 
      Milestone 5. -->
 
-**1.**
+**1.** I asked an AI model to help me turn my notes about the advice_threads corpus into a clear project description and a sensible set of evaluation questions. It suggested a general summary and a few question ideas, but it did not capture the exact shape of the corpus or the project rubric well enough, so I rewrote the description to match the actual documents and the assignment’s criteria. I also narrowed the question set to realistic student-life queries that were clearly covered by the thread files.
 
-**2.**
+**2.** I asked an AI model to summarize the project requirements and break the work into smaller tasks so I could follow the expected workflow. It helped me map the milestones and identify what needed to be done in sequence, but I still checked the repo and grading rubric myself. I also used AI to read the generated results file and extract the key numbers and outputs for the README, which saved time and reduced manual errors, but I verified the extracted values against the raw output before using them in the final submission.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
