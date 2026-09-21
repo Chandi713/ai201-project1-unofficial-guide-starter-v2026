@@ -25,7 +25,11 @@ contains the answer.
 **Why this target:**
 <!-- e.g. "One of my questions is about a topic only two documents mention, so
      I expect that one to be hard." -->
-I chose 4 of 5 test questions to include answer because almost all have related document in the advice_threads corpus and so the top-5 retrieval usually includes the required information. Allowing 1 miss is purposely set as there might be an answer split across chunks or answered in an indirect manner which might not have wordings that could be caught by similarity or kew-word comparisions.
+I chose 4 of 5 test questions to include the answer because almost all have a
+related document in the advice_threads corpus, so the top-five retrieval
+usually includes the required information. Allowing one miss is intentional:
+an answer might be split across chunks or expressed indirectly, using wording
+that similarity or keyword comparisons might not match.
 
 ---
 
@@ -36,7 +40,10 @@ Every answer the system produces names at least one source document.
 **Why this target:**
 <!-- Why all five and not four? What about your setup makes that achievable —
      or what would have to go wrong for it not to be? -->
-I chose 5 out of 5 because every retrieved chunk includes its source documents, and the generation step is designed to cite that source in answer.The failure could occur only if the checkpoint allows a question through without useful retrived result or model omits the source.
+I chose 5 out of 5 because every retrieved chunk includes its source document,
+and the generation step is designed to cite that source in the answer. A
+failure could occur if the checkpoint allows a question through without a
+useful retrieved result or if the model omits the source.
 
 ---
 
@@ -56,7 +63,10 @@ in at least 4 of 5 tries.
      Was there a clean gap, or did the two groups overlap? -->
 
 I chose at least 4 of 5 because the out-of-scope questions had distances
-between 0.78 and 0.93, all above the 0.6 cutoff, so the gate appears to distinguish them from my actual corpus. On miss could possibly be found if a question has a semantic resemblance with the corpus key words but at the same time has nothing to do with the queries answered within our corpus.
+between 0.78 and 0.93, all above the 0.6 cutoff, so the gate appears to
+distinguish them from my actual corpus. A miss could occur if a question has
+semantic resemblance to corpus keywords while still being unrelated to the
+questions answered by the corpus.
 
 ---
 
@@ -73,11 +83,17 @@ between 0.78 and 0.93, all above the 0.6 cutoff, so the gate appears to distingu
           sentence cut in half at either end."
        - "No chunk is shorter than 200 characters, since anything below that
           in my corpus turned out to be a heading with no content under it." -->
-At least 4 of 5 sampled chunks must contain all the information about the thread without splitting it into different chunks or combining the content with the separate document. 
+At least 4 of 5 sampled chunks must contain the complete thread without
+splitting it across chunks or combining it with a separate document.
 
 
 **Why this target:**
-The advice-thread corpus contains short, self-contained documents and the 800 character chunk preserve the whole thread/discussion without cutting-down the information or getting intermingled with a different document/thread. There could be a possible exception of a document crossing the chunk boundary, but a tiny exceptional document does not mean that we should increase the chunk-size to involve it. It is so because if we increase the chunk-size, then in case of a large chunk, the query might retrieve less precise chunk or it might exceed model's context reducing the answer quality.
+The advice_threads corpus contains short, self-contained documents, and the
+800-character target usually preserves the whole thread without cutting the
+information or mixing it with another document. A longer document could still
+cross a chunk boundary, but that does not justify making every chunk larger:
+larger chunks could retrieve less precise context or reduce answer quality by
+using more of the model's context.
 
 
 
@@ -102,7 +118,7 @@ documents with closely interconnected topics for a given question. Since most
 chunks in my corpus correspond to one complete document, these three chunks
 should provide enough relevant information to answer the question. Limiting
 the useful results to the first three also reduces the amount of unrelated text
-sent to the model, thus reducing the input tokens.
+sent to the model, thus reducing input tokens.
 
 
 ---

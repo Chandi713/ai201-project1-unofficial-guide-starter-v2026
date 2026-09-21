@@ -33,8 +33,13 @@ I took "advice_threads" corpora. It is about a practical undergraduate advice fr
 ## Chunking Strategy
 
 **Chunk size: 800**
-**Overlap: 120**
-I used the starter chunker, which splits each document into fixed-size character windows with a small overlap. This corpus is made of short, self-contained advice threads, so fixed-size chunks were a reasonable baseline and kept each answer coherent without forcing a more complex segmentation strategy. I kept this configuration for the initial evaluation because the retrieved chunks consistently contained the answer.
+**Overlap: 120 characters**
+I use `chunker.py::split_documents`, which groups blank-line-separated replies
+without cutting through a paragraph or combining different source documents.
+Chunks target 800 characters, and a later chunk carries trailing reply context
+from the previous chunk using the 120-character overlap setting. The corpus is
+made of short, self-contained advice threads, so most documents remain one
+complete chunk while longer documents can be split at reply boundaries.
 <!-- What about YOUR documents made you pick these numbers? Short posts and
      long sectioned guides don't want the same chunking, and "800 seemed
      reasonable" earns nothing. Point at something you noticed when you read
@@ -56,7 +61,7 @@ I used the starter chunker, which splits each document into fixed-size character
 
      Milestone 3. -->
 
-**Chunk 1** — source: `thread_bike_commute.txt` — produced by: `chunker.py::fallback_split`
+**Chunk 1** — source: `thread_bike_commute.txt` — produced by: `chunker.py::split_documents`
 
 ```
 THREAD: Is a bike worth it for a 20 minute walk commute?
@@ -75,7 +80,7 @@ If you do get one, the campus does free registration and it's the only reason I 
 
 ```
 
-**Chunk 2** — source: `thread_first_gen.txt#0` — produced by: `chunker.py::fallback_split`
+**Chunk 2** — source: `thread_first_gen.txt#0` — produced by: `chunker.py::split_documents`
 
 ```
 THREAD: Anything specific for first-generation students?
@@ -90,7 +95,7 @@ The thing I'd say: the unwritten rules are the hard part, not the coursework. As
 Emergency fund for textbooks and travel exists and is not means-tested beyond a short form.
 ```
 
-**Chunk 3** — source: `thread_laptop_specs.txt#0 ` — produced by: `chunker.py::fallback_split`
+**Chunk 3** — source: `thread_laptop_specs.txt#0` — produced by: `chunker.py::split_documents`
 
 ```
 THREAD: How much laptop do I actually need for CS courses?
@@ -105,7 +110,7 @@ Adding: the lab machines exist and are better than anything you'll buy. For the 
 I did two years on an 8GB machine and it was fine until the last project, at which point it very much wasn't. 16 is the answer.
 ```
 
-**Chunk 4** — source: `thread_office_hours_etiquette.txt#0` — produced by: `chunker.py::fallback_split`
+**Chunk 4** — source: `thread_office_hours_etiquette.txt#0` — produced by: `chunker.py::split_documents`
 
 ```
 THREAD: Is it weird to go to office hours with no specific question?
@@ -121,19 +126,19 @@ If it helps, treat it as a standing appointment. Go every week for a month and i
 
 ```
 
-**Chunk 5** — source: `thread_roommate_conflict.txt#0` — produced by: `chunker.py::fallback_split`
+**Chunk 5** — source: `thread_professor_email.txt#0` — produced by: `chunker.py::split_documents`
 
 ```
-THREAD: Roommate situation isn't working. What now?
+THREAD: Do professors actually answer email?
 
---- reply 1 (28 votes) ---
-Talk to your RA early, and frame it as 'we need help sorting this out' rather than 'move me'. Roomchanges are possible but the process starts with mediation and skipping that step slows it down.
+--- reply 1 (21 votes) ---
+Varies enormously. General rule I've found: if the syllabus states a response window, it's honoured. If it doesn't, assume 48 hours and don't panic before then.
 
---- reply 2 (14 votes) ---
-Room changes happen at the semester boundary almost always, and mid-semester only in fairly serious cases.
+--- reply 2 (33 votes) ---
+Office hours are dramatically more effective than email for anything that takes more than two sentences to answer. They're also usually empty.
 
---- reply 3 (33 votes) ---
-Write down specifics before the meeting. 'It's not working' is hard to act on; 'guests four nightsa week past 2am' is not.
+--- reply 3 (15 votes) ---
+Empty office hours is the biggest unused resource here and I say that having wasted a year not going.
 ```
 
 ## Sample Answer
@@ -148,13 +153,13 @@ What should I do if my roommate situation is not working? — run 1
 
 ```
 Best distance: 0.3535 (passed the gate)
-Sources retrieved: thread_first_year_regret.txt, thread_group_project.txt, thread_laundry_timing.txt, thread_office_hours_etiquette.txt, thread_roommate_conflict.txt
+Sources retrieved: thread_roommate_conflict.txt, thread_group_project.txt, thread_office_hours_etiquette.txt
 
 Based on the provided documents, you should talk to your RA early and frame the conversation as needing help to sort things out rather than asking to move immediately (*thread_roommate_conflict.txt*). Additionally, you should write down specific details before your meeting rather than just saying the situation is not working (*thread_roommate_conflict.txt*).
 ```
 
 **My relevance cutoff: 0.6**
-This was a good cutoff because the in-corpus questions stayed below it and the out-of-scope questions stayed above it, leaving a clear gap
+This was a good cutoff because the in-corpus questions stayed below it and the out-of-scope questions stayed above it, leaving a clear gap.
 <!-- The number you set in config.py, and how you got there.
 
      You ran five questions your corpus covers and the five in OUT_OF_SCOPE
@@ -219,15 +224,43 @@ This was a good cutoff because the in-corpus questions stayed below it and the o
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 4. Sampled chunks are complete | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 5. Answer chunk is in first three results | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
 
 <!-- Underneath, paste the REAL output for each criterion from one of your
      runs — the actual text your system produced, not a description of it.
      Name the file and function that produced it. -->
+
+**Evidence:** `results/run_2026-09-21_0251_before.md`, produced by
+`run_eval.py::main`, recorded `top-k: 3` and three runs per in-corpus question.
+The retrieval checks were produced by `app.py::cmd_retrieve` and ranked the
+answer-containing source first for all five questions.
+
+```text
+### Raw output from run_eval.py::main
+- Sources retrieved: thread_commuting.txt, thread_laundry_timing.txt, thread_study_spots.txt
+Laundry is actually free in the dorms on Tuesday and Wednesday mornings in every building (thread_laundry_timing.txt).
+- Sources retrieved: thread_first_gen.txt, thread_laptop_specs.txt, thread_printing.txt
+Yes, for most people it is enough. ($30 is about 600 pages black and white, though color printing uses it up much faster.)
+Source: thread_printing.txt
+- Sources retrieved: thread_group_project.txt, thread_late_work.txt, thread_pass_fail.txt
+According to thread_pass_fail.txt, you should use the pass/fail option for a course outside your major that you are taking out of curiosity.
+- Sources retrieved: thread_group_project.txt, thread_office_hours_etiquette.txt, thread_roommate_conflict.txt
+If your roommate situation is not working, you should talk to your Resident Advisor (RA) early and frame the conversation around needing help sorting things out rather than asking to move (thread_roommate_conflict.txt).
+- Sources retrieved: thread_late_work.txt, thread_office_hours_etiquette.txt, thread_professor_email.txt
+Yes, it is completely normal to go to office hours with no specific question, and doing so is not weird at all (thread_office_hours_etiquette.txt).
+     -> gate refused 5 of 5
+
+### Raw output from app.py::cmd_retrieve
+1   0.3276     thread_laundry_timing.txt
+1   0.3146     thread_printing.txt
+1   0.4642     thread_pass_fail.txt
+1   0.3535     thread_roommate_conflict.txt
+1   0.5029     thread_office_hours_etiquette.txt
+```
 
 ## Verdicts
 
@@ -242,11 +275,11 @@ This was a good cutoff because the in-corpus questions stayed below it and the o
 
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunks contain the answer | MET | The answer-containing source was ranked first for all five questions, so the target of at least 4 of 5 was exceeded. |
+| 2 | Every answer names a source | MET | All 15 generated answers named at least one source document. |
+| 3 | Gate stops out-of-corpus questions | MET | The gate refused all 5 out-of-scope questions, exceeding the target of 4 of 5. |
+| 4 | Sampled chunks are complete | MET | All 5 inspected chunks were complete threads from one source document. |
+| 5 | Answer chunk is in first three results | MET | The answer-containing source ranked first for all five questions. |
 
 ## Diagnoses
 
@@ -268,11 +301,22 @@ This was a good cutoff because the in-corpus questions stayed below it and the o
 
      Milestone 3. -->
 
+No criterion was missed in the baseline run. Because every answer-containing
+chunk ranked first, Criterion 5 was not a demanding test of ranking quality.
+I would tighten that target in a future project to require the answer-containing
+chunk to appear first for all 5 questions, rather than allowing the first 3
+results.
+
 ## The Improvement
 
 **What I changed:**
+I will reduce the default retrieval count from 3 chunks to 2 chunks.
 
 **Why I picked it:**
+All five answer-containing chunks ranked first with `top-k = 3`, so the third
+chunk was not needed to find the answer. Reducing `top-k` tests whether the
+system can preserve retrieval quality while sending less unrelated context to
+the model.
 
 <!-- Connect it to a specific diagnosis above in one sentence. If you can't,
      you picked a fix because it sounded impressive. -->
@@ -284,11 +328,34 @@ This was a good cutoff because the in-corpus questions stayed below it and the o
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 4. Sampled chunks are complete | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+| 5. Answer chunk is in first three results | 4 of 5 | 5 of 5 | 5 of 5 | 5 of 5 | MET |
+
+**After evidence:** `results/run_2026-09-21_0253_after.md`, produced by
+`run_eval.py::main`, recorded `top-k: 2` and three runs per question. The
+answer-containing source remained in the retrieved results for all five
+questions, every answer named a source, and the gate refused 5 of 5
+out-of-corpus questions.
+
+```text
+top-k: 2 · relevance cutoff: 0.6
+     -> gate refused 5 of 5
+- Sources retrieved: thread_commuting.txt, thread_laundry_timing.txt
+Laundry is actually free in the dorms on Tuesday and Wednesday mornings in every building (thread_laundry_timing.txt).
+- Sources retrieved: thread_laptop_specs.txt, thread_printing.txt
+Yes, for most people the printing quota of $30 is enough.
+Source: thread_printing.txt
+- Sources retrieved: thread_late_work.txt, thread_pass_fail.txt
+You should use the pass/fail option for a course outside your major that you are taking because you are curious.
+Source: thread_pass_fail.txt
+- Sources retrieved: thread_group_project.txt, thread_roommate_conflict.txt
+If your roommate situation is not working, you should talk to your RA early and frame it as needing help sorting things out rather than asking to move (thread_roommate_conflict.txt).
+- Sources retrieved: thread_office_hours_etiquette.txt, thread_professor_email.txt
+Yes, it is not weird to go to office hours with no specific question, and it is considered a normal thing to do (thread_office_hours_etiquette.txt).
+```
 
 **Did it help?**
 
@@ -298,6 +365,12 @@ This was a good cutoff because the in-corpus questions stayed below it and the o
      tell.
 
      Milestone 4. -->
+
+Yes. With `top-k = 2`, all five questions still retrieved the chunk containing
+the answer, all generated answers named a source, and the gate still refused
+5 of 5 out-of-corpus questions. The run used 6,994 total tokens compared with
+9,298 for the `top-k = 3` baseline, although the exact generated wording also
+varied between runs.
 
 ## What's Still Broken
 
@@ -309,9 +382,20 @@ This was a good cutoff because the in-corpus questions stayed below it and the o
 
      Milestone 5. -->
 
+No criteria remained missed after the improvement. The main remaining
+limitation is that some answers omit secondary details even when the retrieved
+chunk contains them; for example, the printing answer sometimes omitted the
+600-page figure. I stopped because the five stated targets were still met, but
+answer completeness would be the next issue to improve.
+
 ## What I'd Do Differently
 
 <!-- Knowing what you know now — which of your five criteria would you write
      differently, and why?
 
      Milestone 5. -->
+
+I would make Criterion 5 stricter: the answer-containing chunk must rank first
+for all 5 test questions. The baseline already showed that all five ranked
+first, so this would measure ranking quality more precisely than allowing any
+of the first three results.
