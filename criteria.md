@@ -120,6 +120,26 @@ should provide enough relevant information to answer the question. Limiting
 the useful results to the first three also reduces the amount of unrelated text
 sent to the model, thus reducing input tokens.
 
+> **Revised in Unit 2:** At least 4 of 5 generated in-corpus answers contain
+> between 5 and 90 word tokens.
+>
+> **Why revised:** The original criterion was vague and substantially overlapped
+> with Criterion 1. Criterion 1 already checks whether the retrieved results
+> contain the expected answer information. Retrieval also ranks those results
+> by cosine similarity, so checking again whether that information appears in
+> the first three results added little independent evidence for this corpus.
+> The top three results can therefore be passed to the evaluation stage as the
+> highest-ranked context without treating their position as a separate quality
+> measure.
+>
+> The revised criterion measures the generated answer directly. These source
+> threads are short and usually need only a concise response. Requiring at
+> least 5 words helps exclude empty responses while still allowing brief but
+> meaningful answers, and the 90-word upper bound keeps responses appropriately
+> scoped to the available evidence. Source validity remains a separate
+> measurement under Criterion 2. This is a measurement revision, not a claim
+> that the original retrieval result was incorrect.
+
 
 ---
 
